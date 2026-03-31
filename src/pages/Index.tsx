@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navigation from "../components/ui/navigation";
+import { useAuth } from "../context/AuthContext";
 import {
   Users,
   Calendar,
@@ -10,52 +12,38 @@ import {
 
 import banasthaliLogo from "../assets/banasthali.jpg";
 import campusImage from "../assets/banasthali-campus.png";
+import { getClubLogo } from "../utils/getClubLogo";
 
 export default function Home() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isCoordinator = user && localStorage.getItem("role_id") === "2";
+  const studentId = localStorage.getItem("student_id");
+  const [featuredEvents, setFeaturedEvents] = useState<any[]>([]);
+  const [allClubs, setAllClubs] = useState<{ club_id: number; name: string }[]>([]);
 
-  const featuredEvents = [
-    {
-      id: 1,
-      title: "DSA Bootcamp",
-      club: "ACM Banasthali",
-      date: "Feb 20",
-      time: "10:00 AM",
-      attendees: 80,
-      image: "💻",
-    },
-    {
-      id: 2,
-      title: "Hack The Horizon",
-      club: "AlgoByte",
-      date: "Feb 25",
-      time: "9:00 AM",
-      attendees: 120,
-      image: "🚀",
-    },
-    {
-      id: 3,
-      title: "Orientation Session 2026",
-      club: "Therav",
-      date: "Feb 18",
-      time: "3:00 PM",
-      attendees: 200,
-      image: "🎭",
-    },
-  ];
+  useEffect(() => {
+    fetch("http://127.0.0.1:5000/api/clubs")
+      .then((res) => res.json())
+      .then((data) => setAllClubs(data.map((c: any) => ({ club_id: c.club_id, name: c.name }))))
+      .catch(() => {});
 
-  const allClubs = [
-    { id: 1, name: "MSC BV" },
-    { id: 2, name: "GeeksforGeeks BV" },
-    { id: 3, name: "GDSC Banasthali" },
-    { id: 4, name: "AlgoByte" },
-    { id: 5, name: "CodeChef BV" },
-    { id: 6, name: "ACM BV" },
-    { id: 7, name: "OSCODE" },
-    { id: 8, name: "E-Cell Banasthali" },
-    { id: 9, name: "Thehrav" },
-    { id: 10, name: "Logos" },
-  ];
+    const url = isCoordinator
+      ? `http://127.0.0.1:5000/api/events/coordinator/${studentId}`
+      : `http://127.0.0.1:5000/api/events/student/guest`;
+
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          const upcoming = data.filter((e: any) => new Date(e.date).setHours(0, 0, 0, 0) >= new Date().setHours(0, 0, 0, 0));
+          setFeaturedEvents(upcoming.slice(0, 3));
+        } else {
+          setFeaturedEvents([]);
+        }
+      })
+      .catch(() => {});
+  }, [isCoordinator, studentId]);
 
   return (
     <div className="min-h-screen">
@@ -89,13 +77,6 @@ export default function Home() {
 
           <div className="flex gap-4 justify-center flex-wrap">
             <Link
-              to="/login"
-              className="bg-white text-purple-700 px-6 py-3 rounded font-semibold flex items-center gap-2"
-            >
-              Get Started <ArrowRight size={18} />
-            </Link>
-
-            <Link
               to="/clubs"
               className="border border-white px-6 py-3 rounded hover:bg-white hover:text-purple-700 transition"
             >
@@ -119,7 +100,7 @@ export default function Home() {
       <section className="py-24 px-6 max-w-7xl mx-auto">
         <div className="flex items-end justify-between mb-12">
           <div>
-            <h2 className="text-4xl font-extrabold tracking-tight mb-2">Live Now – Discover</h2>
+            <h2 className="text-4xl font-extrabold tracking-tight mb-2">Upcoming Events - Discover</h2>
             <p className="text-gray-500 font-medium">Join the latest buzzing events on campus</p>
           </div>
           <Link to="/events" className="text-purple-600 font-bold flex items-center gap-2 group">
@@ -128,21 +109,32 @@ export default function Home() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {featuredEvents.map((event) => (
-            <div
-              key={event.id}
-              onClick={() => navigate("/events")}
-              className="cursor-pointer bg-white/60 backdrop-blur-md border border-white/80 p-8 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] transition-all ring-1 ring-black/5"
-            >
-              <div className="text-4xl mb-6 bg-purple-50 w-16 h-16 flex items-center justify-center rounded-2xl">{event.image}</div>
-              <h3 className="text-2xl font-bold mb-1 leading-tight">{event.title}</h3>
-              <p className="text-purple-600 font-bold mb-4">{event.club}</p>
-              <div className="flex items-center justify-between text-sm font-semibold text-gray-500 mt-2 border-t pt-4 border-gray-100">
-                <span>{event.date} · {event.time}</span>
-                <span className="text-purple-700">{event.attendees}+ Joined</span>
+          {featuredEvents.filter((e) => new Date(e.date).setHours(0,0,0,0) >= new Date().setHours(0,0,0,0)).map((event) => {
+            const logo = getClubLogo(event.club_name);
+            return (
+              <div
+                key={event.event_id || Math.random()}
+                onClick={() => navigate("/events")}
+                className="cursor-pointer bg-white/60 backdrop-blur-md border border-white/80 p-8 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] transition-all ring-1 ring-black/5 flex flex-col items-center text-center"
+              >
+                {logo ? (
+                  <div className="w-20 h-20 mb-6 bg-white shadow-sm border p-2 shrink-0 rounded-[1.5rem]">
+                    <img src={logo} alt={event.club_name} className="w-full h-full object-contain" />
+                  </div>
+                ) : (
+                  <div className="text-4xl mb-6 bg-purple-50 w-20 h-20 flex items-center justify-center rounded-[1.5rem]">
+                    🎟️
+                  </div>
+                )}
+                <h3 className="text-2xl font-bold mb-1 leading-tight">{event.title}</h3>
+                <p className="text-purple-600 font-bold mb-4">{event.club_name}</p>
+                <div className="flex items-center justify-center gap-4 text-sm font-semibold text-gray-500 mt-2 border-t pt-4 border-gray-100 w-full">
+                  <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{typeof event.date === 'string' ? event.date.replace('GMT', 'IST') : event.date}{event.time ? ` at ${event.time}` : ''}</span>
+                  <span className="text-purple-700">{event.venue}</span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -152,18 +144,28 @@ export default function Home() {
         <h2 className="text-3xl font-extrabold text-center mb-12 tracking-tight">Trusted Communities</h2>
 
         <div className="flex gap-8 animate-marquee whitespace-nowrap px-6">
-          {[...allClubs, ...allClubs].map((club, i) => (
-            <div
-              key={`${club.id}-${i}`}
-              onClick={() => navigate(`/clubs/${club.id}`)}
-              className="cursor-pointer min-w-[280px] bg-white/80 backdrop-blur-md px-8 py-6 rounded-3xl shadow-sm border border-white hover:border-purple-200 transition-all text-center ring-1 ring-black/5"
-            >
-              <h3 className="text-lg font-bold text-gray-900">{club.name}</h3>
-              <p className="text-xs font-bold text-purple-600 mt-1 uppercase tracking-widest">
-                OFFICIAL
-              </p>
-            </div>
-          ))}
+          {[...allClubs, ...allClubs].map((club, i) => {
+            const logo = getClubLogo(club.name);
+            return (
+              <div
+                key={`${club.club_id}-${i}`}
+                onClick={() => navigate(`/clubs/${club.club_id}`)}
+                className="cursor-pointer min-w-[280px] bg-white/80 backdrop-blur-md px-8 py-6 rounded-3xl shadow-sm border border-white hover:border-purple-200 transition-all text-center ring-1 ring-black/5 flex flex-col items-center justify-center gap-3"
+              >
+                {logo && (
+                  <div className="w-16 h-16 rounded-2xl bg-white shadow-sm border p-2 shrink-0">
+                    <img src={logo} alt={club.name} className="w-full h-full object-contain" />
+                  </div>
+                )}
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">{club.name}</h3>
+                  <p className="text-xs font-bold text-purple-600 mt-1 uppercase tracking-widest">
+                    OFFICIAL
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
 

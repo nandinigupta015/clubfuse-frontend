@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Bell, Info, Calendar, X } from "lucide-react";
+import { useEffect } from "react";
+import { Bell, Calendar, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ToastProps {

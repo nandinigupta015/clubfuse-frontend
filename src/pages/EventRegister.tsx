@@ -1,9 +1,11 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Navigation from "../components/ui/navigation";
 
 export default function EventRegister() {
-  const { eventId } = useParams();
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const studentId = localStorage.getItem("student_id");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -18,10 +20,37 @@ export default function EventRegister() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Registration Data:", formData);
-    alert("✅ Registration Successful!");
+
+    if (!studentId) {
+      alert("Please login to register for events.");
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://127.0.0.1:5000/api/event-register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          student_id: studentId,
+          event_id: Number(id),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Registration failed");
+        return;
+      }
+
+      alert("✅ Registration Successful!");
+      navigate("/events");
+    } catch {
+      alert("Server error. Please try again.");
+    }
   };
 
   return (
@@ -34,7 +63,7 @@ export default function EventRegister() {
             Event Registration
           </h1>
           <p className="text-gray-500 mb-6">
-            Event ID: {eventId}
+            Event ID: {id}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">

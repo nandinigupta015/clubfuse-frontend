@@ -37,6 +37,7 @@ const Dashboard = () => {
   const [showCreateEvent, setShowCreateEvent] = useState(false);
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
   const [venue, setVenue] = useState("");
   const [description, setDescription] = useState("");
 
@@ -91,6 +92,16 @@ const Dashboard = () => {
         setRegistrations(regArr);
       })
       .catch(err => console.error("Dashboard fetch error:", err));
+
+    // Fetch initial notifications
+    fetch(`http://127.0.0.1:5000/api/notifications/${studentId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setNotifications(data);
+        }
+      })
+      .catch(err => console.error("Notifications fetch error:", err));
   }, [studentId, roleId]);
 
   // SOCKET.IO: LISTEN FOR NEW EVENTS
@@ -121,7 +132,7 @@ const Dashboard = () => {
 
   // CREATE EVENT
   const handleCreateEvent = async () => {
-    if (!title || !date || !venue) {
+    if (!title || !date || !time || !venue) {
       alert("Please fill all required fields");
       return;
     }
@@ -142,6 +153,7 @@ const Dashboard = () => {
           club_id: clubId,
           title,
           date,
+          time,
           venue,
           description,
           type: "technical",
@@ -159,6 +171,7 @@ const Dashboard = () => {
       setShowCreateEvent(false);
       setTitle("");
       setDate("");
+      setTime("");
       setVenue("");
       setDescription("");
 
@@ -209,7 +222,7 @@ const Dashboard = () => {
               <div key={i} className="border p-4 rounded mb-3">
                 <h4 className="font-semibold">{e.title}</h4>
                 <p className="text-sm text-purple-600">{e.clubName}</p>
-                <p className="text-xs text-gray-400">{e.date}</p>
+                <p className="text-xs text-gray-400">{typeof e.date === 'string' ? e.date.replace('GMT', 'IST') : e.date}{e.time ? ` at ${e.time}` : ''}</p>
               </div>
             ))}
           </Card>
@@ -221,20 +234,6 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-500">{c.category}</p>
               </div>
             ))}
-
-            {/* NOTIFICATIONS LIST */}
-            {!isCoordinator && notifications.length > 0 && (
-              <Card title="Notifications">
-                {notifications.map((n, i) => (
-                  <div key={i} className="border p-2 mb-2 rounded text-sm">
-                    {n.message}{" "}
-                    <span className="text-gray-400 text-xs">
-                      ({new Date(n.sent_time).toLocaleString()})
-                    </span>
-                  </div>
-                ))}
-              </Card>
-            )}
           </Card>
         </div>
 
@@ -273,6 +272,12 @@ const Dashboard = () => {
               className="w-full border p-2 mb-3 rounded"
               value={date}
               onChange={e => setDate(e.target.value)}
+            />
+            <input
+              type="time"
+              className="w-full border p-2 mb-3 rounded"
+              value={time}
+              onChange={e => setTime(e.target.value)}
             />
             <input
               className="w-full border p-2 mb-3 rounded"

@@ -1,185 +1,64 @@
 import { useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
 import Navigation from "../components/ui/navigation";
-import { Calendar, Users } from "lucide-react";
+import { Calendar, Users, Loader2 } from "lucide-react";
+import { getClubLogo } from "../utils/getClubLogo";
 
-const clubs = [
-  {
-    id: 1,
-    name: "MSC BV",
-    description:
-      "Microsoft Student Chapter of Banasthali Vidyapith focuses on cloud, AI, and development technologies.",
-    mentor: "Dr. Neha Sharma",
-    logo: "/src/assets/msc.jpg",
-    members: 220,
-    events: [
-      {
-        title: "Tech Talk on Azure",
-        date: "12 Feb 2026",
-        venue: "Apaji Auditorium",
-      },
-      {
-        title: "AI Bootcamp",
-        date: "22 Feb 2026",
-        venue: "Lab 301",
-      },
-    ],
-  },
-  {
-    id: 2,
-    name: "GeeksforGeeks BV",
-    description:
-      "A DSA and placement-oriented community helping students crack technical interviews.",
-    mentor: "Prof. Ritu Agarwal",
-    logo: "/src/assets/gfg.jpg",
-    members: 300,
-    events: [
-      {
-        title: "DSA Bootcamp",
-        date: "15 Feb 2026",
-        venue: "Lab 204",
-      },
-    ],
-  },
-  {
-    id: 3,
-    name: "Google Developer Student Club",
-    description:
-      "Google-supported developer community focusing on real-world solutions using technology.",
-    mentor: "Dr. Pooja Verma",
-    logo: "/src/assets/gdsc.jpg",
-    members: 180,
-    events: [
-      {
-        title: "Android Development Workshop",
-        date: "20 Feb 2026",
-        venue: "Computer Lab 2",
-      },
-    ],
-  },
-  {
-    id: 4,
-    name: "AlgoByte",
-    description:
-      "Competitive programming and problem-solving focused club for coding enthusiasts.",
-    mentor: "Dr. Amit Jain",
-    logo: "/src/assets/algob.jpg",
-    members: 150,
-    events: [
-      {
-        title: "Hack The Horizon",
-        date: "25 Feb 2026",
-        venue: "AI Centre Auditorium",
-      },
-    ],
-  },
-  {
-    id: 5,
-    name: "CodeChef BV",
-    description:
-      "Competitive coding community conducting contests and long challenges.",
-    mentor: "Prof. Sunita Meena",
-    logo: "/src/assets/codechef.jpg",
-    members: 260,
-    events: [
-      {
-        title: "CodeChef Long Challenge",
-        date: "10 Feb 2026",
-        venue: "Online",
-      },
-    ],
-  },
-  {
-    id: 6,
-    name: "ACM BV",
-    description:
-      "Association for Computing Machinery student chapter promoting research and innovation.",
-    mentor: "Dr. Rakesh Gupta",
-    logo: "/src/assets/acm.jpg",
-    members: 170,
-    events: [
-      {
-        title: "Research Paper Writing Session",
-        date: "22 Feb 2026",
-        venue: "Seminar Hall",
-      },
-    ],
-  },
-  {
-    id: 7,
-    name: "OSCODE",
-    description:
-      "Open-source development community contributing to global open-source projects.",
-    mentor: "Dr. Kiran Joshi",
-    logo: "/src/assets/oscode.jpg",
-    members: 140,
-    events: [
-      {
-        title: "Open Source Sprint",
-        date: "25 Feb 2026",
-        venue: "Innovation Lab",
-      },
-    ],
-  },
-  {
-    id: 8,
-    name: "E-Cell Banasthali",
-    description:
-      "Entrepreneurship Cell promoting startup culture and innovation among students.",
-    mentor: "Prof. Neelam Saxena",
-    logo: "/src/assets/ecell.jpg",
-    members: 200,
-    events: [
-      {
-        title: "Women Entrepreneurship Development Program",
-        date: "28 Feb 2026",
-        venue: "Nav Mandir Auditorium",
-      },
-    ],
-  },
-  {
-    id: 9,
-    name: "Thehrav",
-    description:
-      "Performing arts and cultural society celebrating theatre, dance, and drama.",
-    mentor: "Dr. Anjali Mishra",
-    logo: "/src/assets/thehrav.jpg",
-    members: 120,
-    events: [
-      {
-        title: "Annual Stage Play",
-        date: "28 Feb 2026",
-        venue: "Ratan Mandir",
-      },
-    ],
-  },
-  {
-    id: 10,
-    name: "Logos",
-    description:
-      "Literary and debating society fostering critical thinking and expression.",
-    mentor: "Prof. Kavita Sharma",
-    logo: "/src/assets/logos.jpg",
-    members: 110,
-    events: [
-      {
-        title: "Inter-College Debate Meet",
-        date: "26 Feb 2026",
-        venue: "Lecture Hall 1",
-      },
-    ],
-  },
-];
+const API = "http://127.0.0.1:5000";
+
+interface ClubEvent {
+  event_id: number;
+  title: string;
+  date: string;
+  time?: string;
+  venue: string;
+  description: string;
+}
+
+interface ClubDetail {
+  club_id: number;
+  name: string;
+  category: string;
+  description: string;
+  members: number;
+  mentor: string;
+  events: ClubEvent[];
+}
 
 export default function ClubDetails() {
   const { id } = useParams();
-  const club = clubs.find((c) => c.id === Number(id));
+  const [club, setClub] = useState<ClubDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  if (!club) {
+  useEffect(() => {
+    fetch(`${API}/api/clubs/${id}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Club not found");
+        return res.json();
+      })
+      .then((data) => setClub(data))
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) {
+    return (
+      <>
+        <Navigation />
+        <div className="p-10 text-center text-gray-500 flex items-center justify-center gap-2">
+          <Loader2 className="w-5 h-5 animate-spin" /> Loading club details...
+        </div>
+      </>
+    );
+  }
+
+  if (error || !club) {
     return (
       <>
         <Navigation />
         <div className="p-10 text-center text-gray-500">
-          Club not found
+          {error || "Club not found"}
         </div>
       </>
     );
@@ -192,11 +71,15 @@ export default function ClubDetails() {
       <div className="max-w-5xl mx-auto px-6 py-10">
         {/* HEADER */}
         <div className="flex items-center gap-6 mb-8">
-          <img
-            src={club.logo}
-            alt={club.name}
-            className="w-20 h-20 object-contain"
-          />
+          {getClubLogo(club.name) ? (
+            <div className="w-20 h-20 rounded-lg border overflow-hidden shrink-0 flex items-center justify-center bg-white shadow-sm">
+               <img src={getClubLogo(club.name)!} alt={club.name} className="w-full h-full object-contain p-2" />
+            </div>
+          ) : (
+            <div className="w-20 h-20 rounded-lg bg-purple-100 flex items-center justify-center border shrink-0">
+              <Users className="w-10 h-10 text-purple-600" />
+            </div>
+          )}
           <div>
             <h1 className="text-3xl font-bold">{club.name}</h1>
             <p className="text-gray-600 mt-1">
@@ -218,7 +101,7 @@ export default function ClubDetails() {
         {/* MENTOR */}
         <div className="bg-white p-6 rounded shadow mb-8">
           <h2 className="text-xl font-semibold mb-2">
-            Faculty Mentor
+            Coordinator
           </h2>
           <p className="text-gray-700">{club.mentor}</p>
         </div>
@@ -229,15 +112,18 @@ export default function ClubDetails() {
             Upcoming Events
           </h2>
 
-          {club.events.map((event, index) => (
+          {club.events.map((event) => (
             <div
-              key={index}
+              key={event.event_id}
               className="border rounded p-4 mb-3"
             >
               <h3 className="font-semibold">{event.title}</h3>
               <p className="text-sm text-gray-500">
-                {event.date} · {event.venue}
+                {typeof event.date === 'string' ? event.date.replace('GMT', 'IST') : event.date}{event.time ? ` at ${event.time}` : ''} · {event.venue}
               </p>
+              {event.description && (
+                <p className="text-sm text-gray-600 mt-1">{event.description}</p>
+              )}
             </div>
           ))}
 

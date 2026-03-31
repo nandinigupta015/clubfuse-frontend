@@ -23,7 +23,8 @@ export default function Navigation() {
 
   const { user, logout } = useAuth();
   const isAuthenticated = !!user;
-  const userRole = user?.role || "student";
+  const roleId = localStorage.getItem("role_id");
+  const isCoordinator = roleId === "2";
 
   const {
     notifications,
@@ -63,15 +64,16 @@ export default function Navigation() {
     { path: "/events", label: "Events" },
   ];
 
-  const dashboardLinks = [
-    { path: "/dashboard", label: "Dashboard", icon: Users },
-    { path: "/events", label: "My Events", icon: Calendar },
-    { path: "/achievements", label: "Achievements", icon: Trophy },
-  ];
-
-  const coordinatorLinks = [
-    { path: "/manage-club", label: "Manage Club", icon: Settings },
-  ];
+  const dashboardLinks = isCoordinator
+    ? [
+        { path: "/dashboard", label: "Dashboard", icon: Users },
+        { path: "/events", label: "My Events", icon: Calendar },
+      ]
+    : [
+        { path: "/dashboard", label: "Dashboard", icon: Users },
+        { path: "/events", label: "My Events", icon: Calendar },
+        { path: "/achievements", label: "Achievements", icon: Trophy },
+      ];
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -156,18 +158,6 @@ export default function Navigation() {
                     )}
                   </Link>
                 ))}
-
-                {userRole === "coordinator" &&
-                  coordinatorLinks.map((l) => (
-                    <Link
-                      key={l.path}
-                      to={l.path}
-                      className="flex items-center gap-1 text-sm text-gray-600 hover:text-purple-600"
-                    >
-                      <l.icon className="w-4 h-4" />
-                      {l.label}
-                    </Link>
-                  ))}
 
                 {/* 🔔 BELL ICON */}
                 <div className="relative" ref={bellRef}>
