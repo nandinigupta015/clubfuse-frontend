@@ -12,7 +12,7 @@ import heroImage from "../assets/hero-campus.png";
 import { useAuth } from "../context/AuthContext";
 
 type Mode = "login" | "signup";
-type Role = "student" | "teacher" | "coordinator"; // ✅ ADDED teacher
+type Role = "student" | "coordinator";
 
 export default function Login() {
   const [mode, setMode] = useState<Mode>("login");
@@ -63,6 +63,9 @@ export default function Login() {
   const isValidPhone = (phone: string) =>
     /^[0-9]{10}$/.test(phone.trim());
 
+  const isValidPassword = (password: string) =>
+    password.length >= 6 && /\d/.test(password);
+
   /* ================= SUBMIT ================= */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,6 +78,11 @@ export default function Login() {
 
     if (mode === "signup" && !isValidPhone(phone)) {
       setMessage("Phone number must be exactly 10 digits");
+      return;
+    }
+
+    if (mode === "signup" && !isValidPassword(password)) {
+      setMessage("Password must be at least 6 characters long and contain at least one number");
       return;
     }
 
@@ -98,11 +106,10 @@ export default function Login() {
         const data = await res.json();
 
         if (data.status === "success") {
-          // 🔧 FIX: Normalize the role_name returned by the DB ("Student","Teacher","Coordinator")
+          // 🔧 FIX: Normalize the role_name returned by the DB ("Student","Coordinator")
           //         to the lowercase union type used by AuthContext
           const rawRole = (data.role_name as string)?.toLowerCase() as
             | "student"
-            | "teacher"
             | "coordinator";
 
           login({
@@ -134,9 +141,7 @@ export default function Login() {
             role_id:
               role === "student"
                 ? 1
-                : role === "teacher"
-                  ? 3
-                  : 2, // coordinator
+                : 2, // coordinator
             club_id: role === "coordinator" ? clubId : null,
           }),
         });
@@ -221,7 +226,6 @@ export default function Login() {
                   className="w-full border rounded-lg p-2 pr-10"
                 >
                   <option value="student">Student</option>
-                  <option value="teacher">Teacher</option> {/* ✅ ADDED */}
                   <option value="coordinator">Coordinator</option>
                 </select>
                 <ChevronDown className="absolute right-3 top-3 h-4 w-4 text-gray-400" />

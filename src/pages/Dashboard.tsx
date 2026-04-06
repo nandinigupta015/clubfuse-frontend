@@ -24,8 +24,6 @@ const Dashboard = () => {
   const roleLabel =
     roleId === "2"
       ? "Coordinator"
-      : roleId === "3"
-      ? "Teacher"
       : "Student";
 
   const [clubs, setClubs] = useState<any[]>([]);
@@ -222,7 +220,7 @@ const Dashboard = () => {
               <div key={i} className="border p-4 rounded mb-3">
                 <h4 className="font-semibold">{e.title}</h4>
                 <p className="text-sm text-purple-600">{e.clubName}</p>
-                <p className="text-xs text-gray-400">{typeof e.date === 'string' ? e.date.replace('GMT', 'IST') : e.date}{e.time ? ` at ${e.time}` : ''}</p>
+                <p className="text-xs text-gray-400">{typeof e.date === 'string' ? e.date.replace(' 00:00:00', '').replace(' GMT', '').replace('GMT', '') : e.date}{e.time ? ` at ${e.time}` : ''}</p>
               </div>
             ))}
           </Card>

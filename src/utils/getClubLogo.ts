@@ -12,6 +12,7 @@ import aayamLogo from "../assets/aayam.jpg";
 import templeLogo from "../assets/temple.jpg";
 import samarthyaLogo from "../assets/samarthya.jpg";
 import nayanLogo from "../assets/nayan.jpg";
+import innovocationLogo from "../assets/innovocation.png";
 
 export const getClubLogo = (clubName: string) => {
   const name = (clubName || "").toLowerCase();
@@ -30,6 +31,7 @@ export const getClubLogo = (clubName: string) => {
   if (name.includes("temple")) return templeLogo;
   if (name.includes("samarthya")) return samarthyaLogo;
   if (name.includes("nayan")) return nayanLogo;
+  if (name.includes("innovocation")) return innovocationLogo;
   
   // Fallback to null (the consumer can render an icon if null)
   return null;

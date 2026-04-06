@@ -119,7 +119,7 @@ export default function ClubDetails() {
             >
               <h3 className="font-semibold">{event.title}</h3>
               <p className="text-sm text-gray-500">
-                {typeof event.date === 'string' ? event.date.replace('GMT', 'IST') : event.date}{event.time ? ` at ${event.time}` : ''} · {event.venue}
+                {typeof event.date === 'string' ? event.date.replace(' 00:00:00', '').replace(' GMT', '').replace('GMT', '') : event.date}{event.time ? ` at ${event.time}` : ''} · {event.venue}
               </p>
               {event.description && (
                 <p className="text-sm text-gray-600 mt-1">{event.description}</p>

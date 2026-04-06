@@ -143,7 +143,7 @@ const Events = () => {
 
               <div className="flex items-center text-sm text-gray-500 mb-1">
                 <Calendar className="h-4 w-4 mr-2" />
-                {typeof e.date === 'string' ? e.date.replace('GMT', 'IST') : e.date}{e.time ? ` at ${e.time}` : ''}
+                {typeof e.date === 'string' ? e.date.replace(' 00:00:00', '').replace(' GMT', '').replace('GMT', '') : e.date}{e.time ? ` at ${e.time}` : ''}
               </div>
 
               <div className="flex items-center text-sm text-gray-500 mb-3">

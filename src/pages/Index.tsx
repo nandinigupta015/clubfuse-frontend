@@ -129,7 +129,7 @@ export default function Home() {
                 <h3 className="text-2xl font-bold mb-1 leading-tight">{event.title}</h3>
                 <p className="text-purple-600 font-bold mb-4">{event.club_name}</p>
                 <div className="flex items-center justify-center gap-4 text-sm font-semibold text-gray-500 mt-2 border-t pt-4 border-gray-100 w-full">
-                  <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{typeof event.date === 'string' ? event.date.replace('GMT', 'IST') : event.date}{event.time ? ` at ${event.time}` : ''}</span>
+                  <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{typeof event.date === 'string' ? event.date.replace(' 00:00:00', '').replace(' GMT', '').replace('GMT', '') : event.date}{event.time ? ` at ${event.time}` : ''}</span>
                   <span className="text-purple-700">{event.venue}</span>
                 </div>
               </div>

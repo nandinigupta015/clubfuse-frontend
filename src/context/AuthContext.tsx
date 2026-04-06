@@ -3,7 +3,7 @@ import { createContext, useContext, useState } from "react";
 interface User {
   name: string;
   email: string;
-  role: "student" | "coordinator" | "teacher";
+  role: "student" | "coordinator";
 }
 
 interface AuthContextType {
